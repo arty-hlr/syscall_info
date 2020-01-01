@@ -32,9 +32,9 @@ name = sys.argv[2]
 filepath = os.path.dirname(os.path.realpath(__file__))+'/syscalls/'+filename+'.xml'
 
 syscall = ET.parse('{}'.format(filepath)).getroot().find("./syscall[@name='{}']".format(name)).attrib['number']
-declaration = subprocess.check_output('man {} | grep "{}(" | head -1 | cut -d ";" -f 1'.format(name,name), shell=True).decode().strip()
+declaration = subprocess.check_output('man {} | grep "{}(.*);" | head -1 | cut -d ";" -f 1'.format(name,name), shell=True).decode().strip()
 if not declaration:
-    declaration = subprocess.check_output('man {}.2 | grep "{}(" | head -1 | cut -d ";" -f 1'.format(name,name), shell=True).decode().strip()
+    declaration = subprocess.check_output('man {}.2 | grep "{}(.*);" | head -1 | cut -d ";" -f 1'.format(name,name), shell=True).decode().strip()
 
 print('For {}:'.format(arch))
 print('The instruction is {}, the syscall register is {}, and the return register is {}'.format(*instruction_sys_ret))
