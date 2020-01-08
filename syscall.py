@@ -2,7 +2,7 @@
 
 import xml.etree.ElementTree as ET
 import sys
-import os
+from os import path
 import subprocess
 import re
 
@@ -24,22 +24,22 @@ infos = {
     'sparc64':('sparc-n-linux',('o0','o1','o2','o3','o4','o5'),('t','0x6d','g1','o0'))
 }
 
-
 arch = sys.argv[1]
+name = sys.argv[2]
+
 filename = infos[arch][0]
 order = infos[arch][1]
 instruction_sys_ret = infos[arch][2]
-name = sys.argv[2]
-filepath = os.path.dirname(os.path.realpath(__file__))+'/syscalls/'+filename+'.xml'
+filepath = path.join(path.dirname(path.realpath(__file__)), 'syscalls', f'{filename}.xml')
 
-syscall = ET.parse('{}'.format(filepath)).getroot().find("./syscall[@name='{}']".format(name)).attrib['number']
-man = subprocess.check_output('man {}'.format(name), shell=True).decode()
-declaration = re.search('{}\(.*\n?.*\);'.format(name),man)
+syscall = ET.parse(f'{filepath}').getroot().find(f"./syscall[@name='{name}']").attrib['number']
+man = subprocess.check_output(f'man {name}', shell=True).decode()
+declaration = re.search(f'{name}\\(.*\n?.*\\);', man)
 if not declaration:
-    man = subprocess.check_output('man {}.2'.format(name), shell=True).decode()
-    declaration = re.search('{}\(.*\n?.*\);'.format(name),man)
+    man = subprocess.check_output(f'man {name}.2', shell=True).decode()
+    declaration = re.search(f'{name}\\(.*\n?.*\\);', man)
 
-print('For {}:'.format(arch))
+print(f'For {arch}:')
 print('The instruction is {}, the syscall register is {}, and the return register is {}'.format(*instruction_sys_ret))
 print('The registers for the arguments are: {}'.format(', '.join(order)))
 print('The syscall is {}/{}'.format(hex(int(syscall)),syscall))
