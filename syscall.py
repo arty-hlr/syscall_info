@@ -31,12 +31,19 @@ filepath = path.join(path.dirname(path.realpath(__file__)), 'syscalls', f'{filen
 
 try:
     # If the argument is a number, use it to get the name
-    syscall_number = int(syscall)
+    if syscall[:2] == '0x':
+        syscall_number = int(syscall,16)
+    else:
+        syscall_number = int(syscall)
     syscall_name = ET.parse(f'{filepath}').getroot().find(f"./syscall[@number='{syscall_number}']").attrib['name']
 except:
     # If the argument is a name, use it to get the number
-    syscall_number = int(ET.parse(f'{filepath}').getroot().find(f"./syscall[@name='{syscall}']").attrib['number'])
-    syscall_name = syscall
+    try:
+        syscall_number = int(ET.parse(f'{filepath}').getroot().find(f"./syscall[@name='{syscall}']").attrib['number'])
+        syscall_name = syscall
+    except:
+        print('syscall not found, exiting')
+        exit()
 
 man = subprocess.check_output(f'man {syscall_name}', shell=True).decode()
 declaration = re.search(f'{syscall_name}\\(.*\n?.*\\);', man)
