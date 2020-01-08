@@ -24,22 +24,28 @@ parser = argparse.ArgumentParser(description='Lookup syscall information.')
 parser.add_argument('arch', help='The target architecture', choices=ARCHITECTURES.keys())
 parser.add_argument('syscall', help='The syscall name/number to look up')
 args = parser.parse_args()
-
-arch = args.arch
-name = args.syscall
+arch, syscall = args.arch, args.syscall
 
 filename, order, instruction_sys_ret = ARCHITECTURES[arch]
 filepath = path.join(path.dirname(path.realpath(__file__)), 'syscalls', f'{filename}.xml')
 
-syscall = ET.parse(f'{filepath}').getroot().find(f"./syscall[@name='{name}']").attrib['number']
-man = subprocess.check_output(f'man {name}', shell=True).decode()
-declaration = re.search(f'{name}\\(.*\n?.*\\);', man)
+try:
+    # If the argument is a number, use it to get the name
+    syscall_number = int(syscall)
+    syscall_name = ET.parse(f'{filepath}').getroot().find(f"./syscall[@number='{syscall_number}']").attrib['name']
+except:
+    # If the argument is a name, use it to get the number
+    syscall_number = int(ET.parse(f'{filepath}').getroot().find(f"./syscall[@name='{syscall}']").attrib['number'])
+    syscall_name = syscall
+
+man = subprocess.check_output(f'man {syscall_name}', shell=True).decode()
+declaration = re.search(f'{syscall_name}\\(.*\n?.*\\);', man)
 if not declaration:
-    man = subprocess.check_output(f'man {name}.2', shell=True).decode()
-    declaration = re.search(f'{name}\\(.*\n?.*\\);', man)
+    man = subprocess.check_output(f'man {syscall_name}.2', shell=True).decode()
+    declaration = re.search(f'{syscall_name}\\(.*\n?.*\\);', man)
 
 print(f'For {arch}:')
 print('The instruction is {}, the syscall register is {}, and the return register is {}'.format(*instruction_sys_ret))
 print('The registers for the arguments are: {}'.format(', '.join(order)))
-print('The syscall is {}/{}'.format(hex(int(syscall)),syscall))
+print('The syscall is %#x/%d' % (syscall_number, syscall_number))
 print('The syscall function declaration is: \n{}'.format(declaration.group()))
