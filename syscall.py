@@ -16,9 +16,8 @@ ARCHITECTURES = {
     'mips64':('mips-n64-linux',('a0','a1','a2','a3','a4','a5'),('syscall','v0','v0')),
     'ppc64':('ppc-n64-linux',('r3','r4','r5','r6','r7','r8'),('sc','r0','r3')),
     'ppc':('ppc-n-linux',('r3','r4','r5','r6','r7','r8'),('sc','r0','r3')),
-    'sparc64':'sparch-n64-linux',
-    'sparc':('sparc-n-linux',('o0','o1','o2','o3','o4','o5'),('t','0x10','g1','o0')),
-    'sparc64':('sparc-n-linux',('o0','o1','o2','o3','o4','o5'),('t','0x6d','g1','o0'))
+    'sparc':('sparc-linux',('o0','o1','o2','o3','o4','o5'),('t','0x10','g1','o0')),
+    'sparc64':('sparc64-linux',('o0','o1','o2','o3','o4','o5'),('t','0x6d','g1','o0'))
 }
 
 parser = argparse.ArgumentParser(description='Lookup syscall information.')
@@ -29,9 +28,7 @@ args = parser.parse_args()
 arch = args.arch
 name = args.syscall
 
-filename = ARCHITECTURES[arch][0]
-order = ARCHITECTURES[arch][1]
-instruction_sys_ret = ARCHITECTURES[arch][2]
+filename, order, instruction_sys_ret = ARCHITECTURES[arch]
 filepath = path.join(path.dirname(path.realpath(__file__)), 'syscalls', f'{filename}.xml')
 
 syscall = ET.parse(f'{filepath}').getroot().find(f"./syscall[@name='{name}']").attrib['number']
